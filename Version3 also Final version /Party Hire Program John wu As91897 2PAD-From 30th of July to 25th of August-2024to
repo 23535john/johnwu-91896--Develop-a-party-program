@@ -1,0 +1,478 @@
+import os
+import random
+import time
+from tkinter import *
+from tkinter import messagebox
+from tkinter.ttk import Combobox
+
+# Window Manager Class to handle windows
+
+class WindowManager:
+    def __init__(self):
+        self.excist_win = None
+
+    def opnew_window(self, window_title, setup_func):
+        if self.excist_win is not None:
+            self.excist_win.destroy()
+        
+        self.excist_win = Toplevel(Main_win)
+        self.excist_win.title(window_title)
+        setup_func(self.excist_win)# Call the setup function for the windows
+
+# Instantiate the WindowManager
+window_manager = WindowManager()
+
+
+# Quit the main window，effectively terminating the program.
+def quit_program():
+    Main_win.destroy()
+    
+# Print details of all items in a new window
+def print_item_details():
+
+    # This function opens a new window displaying the details of all the items hired.
+    # It attempts to destroy any existing detail window before creating a new one.
+    # Each item is displayed in a table format with columns for the name, hired items, 
+    # the number of items hired, and the receipt number. 
+    # The background colour is set, and each item is presented in a new row.
+
+    def setupdetail_window(detail_window):
+     ''' Function to configure the detail_window'''
+     '''Below are widgets, layout, etc.'''
+
+    
+    
+     detail_window.geometry("700x700")
+     # Set the colour of background
+     detail_window.configure(bg="lightskyblue")
+
+     name_count = 0
+
+     # Create the column headings with color
+
+     Label(detail_window, font=("Helvetica", 12, "bold"), text="Name", fg="white", bg="black", relief="sunken", bd=5).grid(column=1, row=0, padx=5, pady=5)
+     Label(detail_window, font=("Helvetica", 12, "bold"), text="Items Hired Name", fg="white", bg="black", relief="ridge", bd=5).grid(column=2, row=0, padx=5, pady=5)
+     Label(detail_window, font=("Helvetica", 12, "bold"), text="Total number of items hired", fg="white", bg="black", relief="groove", bd=5).grid(column=3, row=0, padx=5, pady=5)
+     Label(detail_window, font=("Helvetica", 12, "bold"), text="Receipt Number", fg="white", bg="black", relief="raised", bd=5).grid(column=4, row=0, padx=5, pady=5)
+     Label(detail_window, font=("Helvetica", 12, "bold"), text="Hire Days", fg="white", bg="black", relief="solid", bd=5).grid(column=5, row=0, padx=5, pady=5)
+
+     # Filling the table with the details of each hired items
+
+     for name_count, item in enumerate(item_details):
+        Label(detail_window, text=item[0], relief="sunken", font=("Helvetica", 10), fg="blue", bg="white").grid(column=1, row=name_count+1, padx=5, pady=5)
+        Label(detail_window, text=item[1], relief="sunken", font=("Helvetica", 10), fg="blue", bg="white").grid(column=2, row=name_count+1, padx=5, pady=5)
+        Label(detail_window, text=item[2], relief="sunken", font=("Helvetica", 10), fg="blue", bg="white").grid(column=3, row=name_count+1, padx=5, pady=5)
+        Label(detail_window, text=item[3], relief="sunken", font=("Helvetica", 10), fg="blue", bg="white").grid(column=4, row=name_count+1, padx=5, pady=5)
+        Label(detail_window, text=item[4], relief="sunken", font=("Helvetica", 10), fg="blue", bg="white").grid(column=5, row=name_count+1, padx=5, pady=5)
+    
+    # Call `opnew_indow` and pass in the configuration function
+    
+    window_manager.opnew_window("All the items hired Details", setupdetail_window)
+
+# Show error message in a popup window
+# This function displays an error message in a popup window.
+# The message is passed as an argument to this function.
+
+def show_wrong_message(message):
+    messagebox.showerror("Opps!", message)
+
+# Validate user input
+
+def check_inputs():
+    
+    # This function checks if the inputs provided by the user are valid.
+    # It validates that the name and item fields are not empty and contain only letters, 
+    # and that the number of items hired is within a valid range (0 to 30).
+    # If all inputs are valid, it appends the details to the list; otherwise, it displays an error message.
+    
+    input_check = 0
+    # Check that Name is not blank and only contains letters
+    if len(entry_name.get()) == 0 or len(entry_name.get()) >=20 or not entry_name.get().isalpha():
+        show_wrong_message("Name is required   and be less than 20 characters.")
+        input_check = 1
+    # Check that Items Hired is not blank and only contains letters
+    if len(entry_items_name.get()) == 0 or len(entry_items_name.get()) >=17 or not entry_items_name.get().isalpha():
+        show_wrong_message("Items Hired Name is required and be less than 14 characters.")
+        input_check = 1
+    # Check that the Total number of items hired is not blank and between 0 and 500
+    if entry_items_number_nehired.get().isdigit():
+        if int(entry_items_number_nehired.get()) <= 0 or int(entry_items_number_nehired.get()) > 500:
+            show_wrong_message("Sorry! Itesms hired is required and You can't hire more than 500 items ")
+            input_check = 1
+    else:
+        show_wrong_message("Total number of items hired is required and must be a positive number")
+        input_check = 1
+
+    # Check that Hire Days is not blank and a positive number
+
+    if entry_hire_days.get().isdigit():
+        if int(entry_hire_days.get()) <= 0 or int(entry_hire_days.get()) >= 180:
+            show_wrong_message("Sorry! You can not hire more than 180 days,and must hire at least one day")
+            input_check = 1
+    else:
+        show_wrong_message("Hire days is required and must be a positive number")
+        input_check = 1
+
+# If all inputs are valid, append the item to the list and display a receipt number
+
+    if input_check == 0:
+
+        receipt_number = give_receipt_no()
+        append_item(receipt_number)
+    
+        messagebox.showinfo("Receipt", f"Items hired successfully! Your receipt number is {receipt_number}.\nPlease remember it!")
+
+
+
+# This function appends the details of the item being hired to the item_details list.
+# It generates a receipt number for the new entry, adds the entry to the list, 
+# saves the receipt details to a file, and clears the input fields for the next entry.
+# Append new item details
+
+def append_item(receipt_number):
+     
+      '''Add the next item to the list'''
+
+      item_details.append([entry_name.get(), entry_items_name.get(), entry_items_number_nehired.get(), receipt_number,entry_hire_days.get()])
+      save_receit_in_file(receipt_number)
+      '''Clear the entry boxes'''
+      entry_name.delete(0, 'end')
+      entry_items_name.delete(0, 'end')
+      entry_items_number_nehired.delete(0, 'end')
+      entry_hire_days.delete(0, 'end')
+      
+     
+
+# Generate a receipt number that is easy to remember
+#This function generates a unique receipt number based on the current date 
+#The receipt number is in the format 'DD-MM-YYYY-XXX' where 'XXX' is a random number.'''
+
+def give_receipt_no():
+  random_numbers = random.randint(100 ,999)
+  return f"{time.strftime('%d-%m-%Y')}-{random_numbers}"
+
+
+
+# Save receipt to a file
+
+def save_receit_in_file(receipt_number):
+
+    # This function saves the details of the hired item to a text file named with the receipt number.
+    # If the receipts directory does not exist, it is created. 
+    # The file contains the name, hired item, number of items, and the receipt number.
+
+    if not os.path.exists('receipts'):
+        os.makedirs('receipts')
+    with open(f'receipts/{receipt_number}.txt', 'w') as file:
+        file.write(f"Name: {entry_name.get()}\n")
+        file.write(f"Items Hired Name: {entry_items_name.get()}\n")
+        file.write(f"Total number of items hired: {entry_items_number_nehired.get()}\n")
+        file.write(f"Hire Days: {entry_hire_days.get()}\n")
+        file.write(f"Receipt Number: {receipt_number}\n")
+
+# This function deletes an item from the item_details list based on the provided receipt number.
+# It searches for the receipt number in the list, removes the corresponding entry, 
+ #  deletes the associated receipt file, and updates the display. If the receipt is not found, it shows an error message.'''
+ #  Delete an item by receipt number
+
+def delete_by_receipt():
+    receipt_number = delete_receipt_entry.get()
+    John = 0
+    while John < len(item_details):
+        if item_details[John][3] == receipt_number:
+            item_details.pop(John)
+            delete_receipt_file(receipt_number)
+            delete_receipt_entry.delete(0, 'end')
+            print_item_details()  # # Refresh the item details display
+            return
+        John += 1
+    show_wrong_message("Please input correct Receipt number!")
+
+# Delete the receipt file
+
+def delete_receipt_file(receipt_number):
+    '''This function deletes the receipt file associated with the provided receipt number.
+       It checks if the file exists before attempting to delete it.'''
+    
+    file_path = f'receipts/{receipt_number}.txt'
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        messagebox.showinfo("Info","Items Returned successfully!\n Thank you!")
+    
+
+# Delete all items
+
+def delete_allitems():
+    if item_details:
+        item_details.clear()
+        counters['total_entries'] = 0
+        for receipt_file in os.listdir('receipts'):
+            os.remove(os.path.join('receipts', receipt_file))
+        print_item_details()
+        messagebox.showinfo("Info", "All hired items have been deleted.")
+    else:
+        show_wrong_message("It's empty")
+
+# Show history of a receipt number
+#  This function opens a new window that allows the user to search for the history of a specific receipt number.
+#  It provides an entry field for the receipt number and a button to trigger the search.'''
+
+def History():
+    def setuphistory_window(history_window):
+       ''' Function to configure the history_window'''
+       '''Below are widgets, layout, etc.'''
+    
+    
+       history_window.geometry("500x300")
+       history_window.configure(bg="lightgoldenrodyellow")
+   
+       Label(history_window, text="Receipt Number", fg='black',bg="gold1",relief="solid",bd=2).grid(column=0, row=0, padx=25, pady=25, sticky=E)
+       global entry_receipt_search
+       entry_receipt_search = Entry(history_window)
+       entry_receipt_search.grid(column=1, row=0)
+       Button(history_window, text="Search", fg='brown',bg="orange",relief="ridge",bd=4,command=search_receipt, width=15).grid(column=1, row=1, padx=20, pady=20)
+     
+     # Call `opnew_indow` and pass in the configuration function
+
+    window_manager.opnew_window("Show History", setuphistory_window)
+
+
+
+# Search for a receipt and display its contents
+# This function searches for the receipt file associated with the provided receipt number.
+# If the file exists, its contents are displayed in a new window. If not, an error message is shown.
+
+def search_receipt():
+    receipt_number = entry_receipt_search.get()
+    file_path = f'receipts/{receipt_number}.txt'
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            history_content = file.read()
+        show_content(history_content)
+    else:
+        show_wrong_message("Opps! Something went to wrong.\nPlease check ur receipt number is correct.")
+
+# Display the contents of a receipt in a new window
+# This function displays the content of a receipt in a new window.
+# The text is presented in a read-only text widget.
+
+def show_content(content):
+    content_window = Toplevel(Main_win)
+    content_window.title("Receipt Content")
+    
+    content_window.geometry("500x300")
+
+    text = Text(content_window)
+    text.insert(1.0, content)
+    text.config(state=DISABLED) # Make the text read-only
+    text.pack(expand=1, fill=BOTH)
+
+# Create the main page buttons and labels
+# This function sets up the main buttons on the main window.
+# Each button is linked to a specific function: append details, delete details, print details, show history, and quit.
+
+def setup_main_buttons(button_frame):
+    
+    Button(button_frame, font='System',text="Start Hire", fg='blue', bg='lightblue', relief='raised', bd=7, command=appenditems_page, width=15).grid(column=0, row=0, padx=17, pady=17)
+    Button(button_frame, font='System',text="Return Items", fg='red', bg='lightblue', relief='raised', bd=7, command=return_page, width=15).grid(column=0, row=1, padx=17, pady=17)
+    Button(button_frame, font='System',text="Print All Items State", fg='darkgreen', bg='lightblue', relief='raised', bd=7, command=print_item_details, width=17).grid(column=1, row=0, padx=15, pady=15)
+    Button(button_frame, font='System',text="Search Hired Items", fg='darkgoldenrod4', bg='lightblue', relief='raised', bd=7, command=History, width=17).grid(column=1, row=1, padx=15, pady=15)
+    Button(button_frame, font='System',text="Quit", fg='white', bg='red', relief='raised', bd=5, command=quit_program, width=9).grid(column=2, row=0, padx=15, pady=15)
+    Button(button_frame, font='System',text="Instruction", fg='white', bg='Gold', relief='raised', bd=5,command=instruction_page, width=9).grid(column=2, row=1, padx=15, pady=15)
+
+
+# Create the Instruction_page for users understand how to use my program
+# The function is use text widget mothod and it be able to show a lot of sentences instead use lables 
+
+def instruction_page():
+     def setup_intro_window(intro_window):
+       ''' Function to configure the intro_window'''
+       intro_window.geometry("570x470")
+     
+       intro_window.configure(bg ="white")
+    
+       # Create a frame to put  Text and Scrollbar  into container
+
+       frame = Frame(intro_window)
+
+       frame.pack(fill=BOTH, expand=True)
+
+      # create widget Text
+
+       text_widget = Text(frame, wrap=WORD,state=DISABLED, font=("system", 14, "bold"))
+       text_widget.pack(side=LEFT, fill=BOTH, expand=True)
+
+    # Create Scrollbar widget
+       scrollbar = Scrollbar(frame, orient=VERTICAL, command=text_widget.yview)
+       scrollbar.pack(side=RIGHT, fill=Y)
+
+    # Set Text widget's yscrollcommand，make it connect with Scrollbar 
+       text_widget.config(yscrollcommand=scrollbar.set)
+       text_widget.pack(pady=25)
+    
+    # In Text widget's end insert text 
+
+       text_widget.config(state='normal')
+       text_widget.insert(END, "The instruction: \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "This app is centered around the party hire program, providing customers with the opportunity to rent party supplies to hold parties. \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "You can see a Start Hire button on the main page, you can click it to start hire your items. \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "After you fill out the your informations correctlly.Then a window pops up with your receipt number. \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "Remember this, this number can help you return your items and find the status of your items, and these functions are also displayed on the main page. \n")
+       text_widget.insert(END, "\n")
+       
+       text_widget.insert(END, "The main thing to remember is the last three random digits of the receipt number. \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "The first few digits is the Date and those are the year, month, day when you started hiring the item. \n")
+       
+       text_widget.insert(END, "But don't worry.if you forgot your receipt number,just go to the main page and as you can see a button called print all items state. \n")
+       text_widget.insert(END, "\n")
+       
+       text_widget.insert(END, "And you can click the button and you will see all of your items' receipt number and details \n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "Start to hire your party items now!\n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "\n")
+       text_widget.insert(END, "")
+       text_widget.tag_add("start", "0.0", "100.100") 
+  
+      # configuring a tag called start 
+       text_widget.tag_config("start", background="lightblue", foreground="green") 
+  
+       text_widget.config(state=DISABLED)
+# Call `opnew_indow` and pass in the configuration function    
+     window_manager.opnew_window("_John's Party Hire Program", setup_intro_window)
+
+
+# Open add details page
+# This function opens a new window where the user can input details to add a new hired item.
+# It includes fields for the name, item hired, and the total number of items, with a background image.
+
+def appenditems_page():
+    def setupadd_details_window(add_details_window):
+        ''' Function to configure the history_window'''
+    
+        
+        add_details_window.geometry("530x440")
+
+
+        bg_image = PhotoImage(file=r"output-onlinepngtools.png")
+        bg_label = Label(add_details_window, image=bg_image)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        Label(add_details_window, text="Name", font=("system", 10),fg='white',bg="green",relief='groove', bd=4).grid(column=0, row=0, padx=30, pady=30, sticky=E)
+        Label(add_details_window, text="Items Hired Name", font=("system", 10),fg='white', bg='green', relief='groove', bd=4).grid(column=0, row=1, padx=30, pady=30, sticky=E)
+        Label(add_details_window, text="Total number of items hired",font=("system", 10),fg='white',bg="green",relief='groove', bd=4).grid(column=0, row=2, padx=30, pady=30, sticky=E)
+        Label(add_details_window, text="Hire Days", font=("system", 10), fg='white', bg="green", relief='groove', bd=4).grid(column=0, row=3, padx=30, pady=30, sticky=E)
+
+
+        global entry_name, entry_items_name, entry_items_number_nehired,entry_hire_days ,append_image
+        entry_name = Entry(add_details_window)
+        entry_name.grid(column=1, row=0)
+   
+        # Create（Combobox）instead type entry 
+        items_list = ["Partytable", "Bench", "Chairs",'Glassware','Lighting','Cakestands','liene','DJequipment','Accessories',"Centrepieces","Backdrops"]
+        entry_items_name = Combobox(add_details_window, values=items_list)
+        entry_items_name.set("Pick Item or Input")
+        entry_items_name.grid(column=1, row=1)
+   
+        entry_items_number_nehired = Entry(add_details_window)
+        entry_items_number_nehired.grid(column=1, row=2)
+        entry_hire_days = Entry(add_details_window)
+        entry_hire_days.grid(column=1, row=3)
+
+        # Load and set image for the button
+        append_image = PhotoImage(file=r"output-onlinepngtools (2).png")
+        append_button = Button(add_details_window, text="Submit",font=("system", 10), fg='blue', bg='lightgreen', relief='ridge', bd=5, command=check_inputs, width=95, image=append_image, compound="right")
+        append_button.grid(column=1, row=5, padx=20, pady=20)
+
+
+      # Keep a reference to the images to prevent garbage collection
+        add_details_window.bg_image = bg_image
+        add_details_window.append_image = append_image
+    ''' Call `opnew_indow` and pass in the configuration function'''
+    window_manager.opnew_window("Fill out Details", setupadd_details_window)
+
+
+
+
+
+
+
+# Open return items page
+# This function opens a new window where the user can delete a hired item based on its receipt number.'''
+# The user enters the receipt number, and upon clicking the delete button, the corresponding entry is removed.'''
+
+def return_page():
+ def setupdelete_details_window(delete_details_window):
+        ''' Function to configure the delete_details_window'''
+    
+    
+        delete_details_window.geometry("517x470")
+
+        bg_image = PhotoImage(file=r"output-onlinepngtools(1).png")
+        bg_label = Label(delete_details_window, image=bg_image)
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        Label(delete_details_window, text="Receipt Number", fg='blue', bg='orange', relief='flat', bd=3).grid(column=0, row=0, padx=22, pady=22, sticky=E)
+
+        global delete_receipt_entry
+        delete_receipt_entry = Entry(delete_details_window)
+        delete_receipt_entry.grid(column=1, row=0)
+
+        Button(delete_details_window, text="Return Items", fg='red', bg='pink', relief='ridge', bd=3,  command=delete_by_receipt, width=13).grid(column=2, row=0, padx=18, pady=18)
+        Button(delete_details_window, text="Delete All Hired Items State", fg='red', bg='pink', relief='ridge', bd=3,  command=delete_allitems, width=22).grid(column=1, row=1, padx=18, pady=18)
+
+       # Prevent garbage collection of the background image
+        delete_details_window.bg_image = bg_image
+    
+ window_manager.opnew_window("Return Items", setupdelete_details_window)
+
+
+    
+# Start the program running
+def main():
+    
+    '''This is the main function that initializes the main window of the application.
+  It sets up the window properties, loads the background and icon images, 
+    and calls the function to create the main buttons.'''
+    
+    global Main_win, icon
+    Main_win = Tk()
+    Main_win.geometry("500x550")
+    Main_win.title("John's Party Hire Program")
+
+    icon_path = r"declaration.png"
+    icon = PhotoImage(file=icon_path)
+    Main_win.iconphoto(True, icon)
+
+     # Create a frame for the top half with background image
+    top_frame = Frame(Main_win, height=380, width=500)
+    top_frame.grid(row=0, column=0, sticky="nsew")
+    top_frame.grid_propagate(False)
+
+    bg_image = PhotoImage(file=r"output-onlinepngtools (7).png") 
+    bg_label = Label(top_frame, image=bg_image)
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # Create a frame for the buttons in the bottom half
+    button_frame = Frame(Main_win, height=175, width=490, bg='indigo')
+    button_frame.grid(row=1, column=0, sticky="nsew")
+    button_frame.grid_propagate(False)
+
+    setup_main_buttons(button_frame)
+
+    Main_win.mainloop()
+
+# Create empty list for item details and counters for entries in the list
+
+counters = { 'name_count': 0}
+item_details = []
+
+# Start runnig 
+main()
+
